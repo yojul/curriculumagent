@@ -17,7 +17,7 @@ from grid2op.Environment import BaseEnv
 from grid2op.Parameters import Parameters
 
 from curriculumagent.teacher.submodule.common import save_sample_new
-from curriculumagent.common.utilities import find_best_line_to_reconnect
+from curriculumagent.common.utilities import find_best_line_to_reconnect, make_env_with_backend_import
 from curriculumagent.teacher.submodule.encoded_action import EncodedTopologyAction
 from curriculumagent.teacher.submodule.topology_action_search import topology_search_tuples, topology_search_triples
 
@@ -51,20 +51,8 @@ def collect_multi_experience(
     if isinstance(env_name_path, Path):
         env_name_path = str(env_name_path)
 
-    try:
-        # if lightsim2grid is available, use it.
-        from lightsim2grid import LightSimBackend
-
-        backend = LightSimBackend()
-        if chronics_path:
-            # Use env_name_path as path together with chronics_path
-            env: BaseEnv = grid2op.make(dataset=env_name_path, chronics_path=chronics_path, backend=backend)
-        else:
-            # Use env_name_path as name
-            env: BaseEnv = grid2op.make(dataset=env_name_path, backend=backend)
-    except Exception as e:  # noqa
-        logging.warning("Not using lightsim2grid! Operation will be slow!")
-        raise e
+    # Setup environment with best possible backend
+    env = make_env_with_backend_import(env_name_path=env_name_path, chronics_path=chronics_path)
 
     action_space = env.action_space
 

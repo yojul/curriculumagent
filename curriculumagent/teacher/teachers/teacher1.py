@@ -25,6 +25,7 @@ from grid2op.Environment import BaseEnv
 from curriculumagent.teacher.submodule.common import save_sample_new
 from curriculumagent.teacher.submodule.encoded_action import EncodedTopologyAction
 from curriculumagent.teacher.submodule.topology_action_search import topology_search_topk
+from curriculumagent.common.utilities import make_env_with_backend_import
 
 
 def collect_attacker_experience(
@@ -52,20 +53,7 @@ def collect_attacker_experience(
         None.
     """
     # Setup environment with the best possible backend
-    try:
-        # if lightsim2grid is available, use it.
-        from lightsim2grid import LightSimBackend
-
-        backend = LightSimBackend()
-    except ImportError:  # noqa
-        backend = PandaPowerBackend()
-        logging.warning("Not using lightsim2grid! Operation will be slow!")
-    if chronics_path:
-        # Use env_name_path as path together with chronics_path
-        env: BaseEnv = grid2op.make(dataset=env_name_path, chronics_path=chronics_path, backend=backend)
-    else:
-        # Use env_name_path as name
-        env: BaseEnv = grid2op.make(dataset=env_name_path, backend=backend)
+    env = make_env_with_backend_import(env_name_path, chronics_path=chronics_path)
 
     if seed:
         np.random.seed(seed)

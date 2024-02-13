@@ -17,7 +17,7 @@ from grid2op.Environment import BaseEnv
 from grid2op.Exceptions import DivergingPowerFlow
 from grid2op.dtypes import dt_int
 
-from curriculumagent.common.utilities import find_best_line_to_reconnect
+from curriculumagent.common.utilities import find_best_line_to_reconnect, make_env_with_backend_import
 from curriculumagent.tutor.tutors.general_tutor import GeneralTutor
 
 
@@ -53,15 +53,7 @@ def collect_divergent_powerflow_experience(
     if enable_logging:
         logging.basicConfig(level=logging.INFO)
 
-    try:
-        # if lightsim2grid is available, use it.
-        from lightsim2grid import LightSimBackend
-
-        backend = LightSimBackend()
-        env = grid2op.make(dataset=env_name_path, backend=backend)
-    except ImportError:  # noqa
-        env = grid2op.make(dataset=env_name_path)
-        logging.warning("Not using lightsim2grid! Operation will be slow!")
+    env = make_env_with_backend_import(env_name_path)
 
     if seed:
         np.random.seed(seed)

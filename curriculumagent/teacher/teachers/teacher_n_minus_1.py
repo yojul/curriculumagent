@@ -21,7 +21,7 @@ from grid2op.Environment import BaseEnv
 from grid2op.Observation import BaseObservation
 
 from curriculumagent.teacher.submodule.common import save_sample_new
-from curriculumagent.common.utilities import find_best_line_to_reconnect
+from curriculumagent.common.utilities import find_best_line_to_reconnect, make_env_with_backend_import
 from curriculumagent.teacher.submodule.encoded_action import EncodedTopologyAction
 from curriculumagent.teacher.submodule.topology_action_search import topology_search_topk
 
@@ -209,24 +209,12 @@ class NMinusOneTeacher:
         Returns:
             Action set that are N-1.
         """
-        try:
-            # if lightsim2grid is available, use it.
-            from lightsim2grid import LightSimBackend
-
-            backend = LightSimBackend()
-        except ImportError:  # noqa
-            backend = PandaPowerBackend()
-            logging.warning("Not using lightsim2grid! Operation will be slow!")
-
         kwargs = dict()
         if disable_opponent:
             kwargs["opponent_budget_per_ts"] = 0
             kwargs["opponent_init_budget"] = 0
 
-        if chronics_path:
-            env = grid2op.make(dataset=env_path, chronics_path=chronics_path, backend=backend, **kwargs)
-        else:
-            env = grid2op.make(dataset=env_path, backend=backend, **kwargs)
+        env = make_env_with_backend_import(env_path, chronics_path=chronics_path,env_kwargs=kwargs)
 
         if self.seed:
             env.seed(self.seed)
@@ -333,21 +321,7 @@ class NMinusOneTeacher:
             chronics_path = str(env_name_path / "chronics")
         env_name_path = str(env_name_path)
 
-        try:
-            # if lightsim2grid is available, use it.
-            from lightsim2grid import LightSimBackend
-
-            backend = LightSimBackend()
-        except ImportError:  # noqa
-            backend = PandaPowerBackend()
-            logging.warning("Not using lightsim2grid! Operation will be slow!")
-
-        if chronics_path:
-            # Use env_name_path as path together with chronics_path
-            env = grid2op.make(dataset=env_name_path, chronics_path=chronics_path, backend=backend)
-        else:
-            # Use env_name_path as name
-            env = grid2op.make(dataset=env_name_path, backend=backend)
+        env = make_env_with_backend_import(env_name_path, chronics_path=chronics_path)
 
         tasks = []
         if number_of_years:

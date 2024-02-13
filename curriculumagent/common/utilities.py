@@ -12,6 +12,7 @@ from typing import Optional, List, Tuple, Iterator
 import grid2op
 import numpy as np
 from grid2op.Action import BaseAction, ActionSpace
+from grid2op.Backend import PandaPowerBackend
 from grid2op.Environment import BaseEnv
 from grid2op.Observation import BaseObservation
 from grid2op.dtypes import dt_int
@@ -443,3 +444,25 @@ def map_actions(list_of_actions: List[np.ndarray]) -> List[dict]:
         total_action.append(act_id)
 
     return total_action
+
+def make_env_with_backend_import(env_name_path: str, chronics_path: Optional[str] = None, env_kwargs: Optional[dict] = {}) -> BaseEnv:
+    """This import lightsim2grid backend if available and creates env with the specify name_path.
+
+    Args:
+        env_name_path : String id for the env to be created
+
+    Returns:
+        Grid2op Environment
+    """
+
+    try:
+        # if lightsim2grid is available, use it.
+        from lightsim2grid import LightSimBackend
+        backend = LightSimBackend()
+    except ImportError:  # noqa
+        backend = PandaPowerBackend()
+        logging.warning("Not using lightsim2grid! Operation will be slow!")
+    if chronics_path :
+        return grid2op.make(dataset=env_name_path, chronics_path=chronics_path, backend=backend, **env_kwargs)
+    else:
+        return grid2op.make(dataset=env_name_path, backend=backend, **env_kwargs)

@@ -18,7 +18,7 @@ from grid2op.Agent import BaseAgent
 from grid2op.Environment import BaseEnv
 
 from curriculumagent.common.obs_converter import obs_to_vect
-from curriculumagent.common.utilities import split_and_execute_action, find_best_line_to_reconnect
+from curriculumagent.common.utilities import split_and_execute_action, find_best_line_to_reconnect, make_env_with_backend_import
 from curriculumagent.tutor.tutors.general_tutor import GeneralTutor
 
 
@@ -55,15 +55,7 @@ def collect_tutor_experience_one_chronic(
     if enable_logging:
         logging.basicConfig(level=logging.INFO)
 
-    try:
-        # if lightsim2grid is available, use it.
-        from lightsim2grid import LightSimBackend
-
-        backend = LightSimBackend()
-        env = grid2op.make(dataset=env_name_path, backend=backend,**env_kwargs)
-    except ImportError:  # noqa
-        env = grid2op.make(dataset=env_name_path,**env_kwargs)
-        logging.warning("Not using lightsim2grid! Operation will be slow!")
+    env = make_env_with_backend_import(env_name_path, env_kwargs=env_kwargs)
 
     if seed:
         env.seed(seed)
